@@ -51,6 +51,7 @@ public class LibInfo
       MakeBlockXYPlotter.class,
       GenericGcodeDriver.class,
       Grbl.class,
+      GrblCompact.class,
       SmoothieBoard.class,
       Marlin.class,
       FullSpectrumCutter.class,
