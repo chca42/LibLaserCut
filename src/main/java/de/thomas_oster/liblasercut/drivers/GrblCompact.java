@@ -39,7 +39,7 @@ public class GrblCompact extends Grbl
   public GrblCompact()
   {
     //set some grbl-specific defaults
-    setLineend("CR");
+    setLineend("LF");
     setIdentificationLine("Grbl");
     // Grbl uses "ok" flow control
     setWaitForOKafterEachLine(true);
@@ -74,6 +74,8 @@ public class GrblCompact extends Grbl
     result.add(GenericGcodeDriver.SETTING_HOST);
     // allow setting travel speed
     result.add(GenericGcodeDriver.SETTING_TRAVEL_SPEED);
+    // allow setting line ending
+    result.add(GenericGcodeDriver.SETTING_LINEEND);
     return result.toArray(new String[0]);
   }
   
