@@ -25,9 +25,17 @@ import de.thomas_oster.liblasercut.platform.Util;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.ContentType;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 /**
  * This class implements a driver for Grbl based firmwares.
@@ -72,6 +80,8 @@ public class GrblCompact extends Grbl
     List<String> result = new LinkedList<>(Arrays.asList(super.getPropertyKeys()));
     // allow using octoprint
     result.add(GenericGcodeDriver.SETTING_HOST);
+    // allow using HTTP
+    result.add(GenericGcodeDriver.SETTING_HTTP_UPLOAD_URL);
     // allow setting travel speed
     result.add(GenericGcodeDriver.SETTING_TRAVEL_SPEED);
     // allow setting line ending
@@ -82,7 +92,7 @@ public class GrblCompact extends Grbl
   @Override
   public String getModelName()
   {
-    return "Grbl Compact Gcode Driver";
+    return "Grbl/FluidNC Compact Gcode Driver";
   }
   
   protected double lastX = 0;
@@ -169,6 +179,24 @@ public class GrblCompact extends Grbl
     super.sendJob(job, pl, warnings);
   }
 
+  @Override
+  protected void http_upload(URI url, String data, String filename) throws IOException
+  {
+    CloseableHttpClient httpClient = HttpClients.createDefault();
+    HttpPost uploadFile = new HttpPost(url);
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    builder.addBinaryBody("upload", data.getBytes("UTF-8"),
+        ContentType.APPLICATION_OCTET_STREAM, filename);
+    HttpEntity multipart = builder.build();
+    uploadFile.setEntity(multipart);
+    try (CloseableHttpResponse response = httpClient.execute(uploadFile))
+    {
+      if (response.getStatusLine().getStatusCode() != 200) {
+        throw new IOException("Error: Upload returned "+response.getStatusLine().getReasonPhrase());
+      }
+    }
+  }
+  
   @Override
   public GrblCompact clone()
   {
